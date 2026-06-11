@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Login - BudgetHub{% endblock %}
+
+{% block content %}
+<div class="container-fluid vh-100 d-flex align-items-center justify-content-center bg-gradient-auth">
+    <div class="row w-100 h-100">
+        <!-- Left Side - Branding -->
+        <div class="col-lg-6 d-none d-lg-flex align-items-center justify-content-center text-white p-5">
+            <div class="text-center">
+                <div class="mb-4">
+                    <i class="fas fa-wallet fa-5x mb-3 d-block" style="color: #FFD700;"></i>
+                </div>
+                <h1 class="display-4 fw-bold mb-3">BudgetHub</h1>
+                <p class="lead mb-4">Take control of your finances</p>
+                <div class="features-list text-start ms-5">
+                    <p><i class="fas fa-check-circle me-2" style="color: #00FF7F;"></i>Track expenses easily</p>
+                    <p><i class="fas fa-check-circle me-2" style="color: #00FF7F;"></i>Visualize your spending</p>
+                    <p><i class="fas fa-check-circle me-2" style="color: #00FF7F;"></i>Achieve financial goals</p>
+                    <p><i class="fas fa-check-circle me-2" style="color: #00FF7F;"></i>Secure & Private</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side - Login Form -->
+        <div class="col-lg-6 d-flex align-items-center justify-content-center p-4">
+            <div class="w-100" style="max-width: 450px;">
+                <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                    <div class="card-body p-5">
+                        <h2 class="text-center mb-1 fw-bold">Welcome Back!</h2>
+                        <p class="text-center text-muted mb-4">Sign in to your account</p>
+
+                        <form method="POST" action="{{ url_for('login') }}">
+                            <!-- Username -->
+                            <div class="mb-4">
+                                <label for="username" class="form-label fw-bold">Username</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-0">
+                                        <i class="fas fa-user text-primary"></i>
+                                    </span>
+                                    <input type="text" class="form-control form-control-lg bg-light border-0" 
+                                           id="username" name="username" placeholder="Enter your username" required>
+                                </div>
+                            </div>
+
+                            <!-- Password -->
+                            <div class="mb-4">
+                                <label for="password" class="form-label fw-bold">Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-0">
+                                        <i class="fas fa-lock text-primary"></i>
+                                    </span>
+                                    <input type="password" class="form-control form-control-lg bg-light border-0" 
+                                           id="password" name="password" placeholder="Enter your password" required>
+                                </div>
+                            </div>
+
+                            <!-- Login Button -->
+                            <button type="submit" class="btn btn-lg btn-primary w-100 fw-bold rounded-3 py-2 mb-3">
+                                <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                            </button>
+                        </form>
+
+                        <!-- Divider -->
+                        <div class="d-flex align-items-center my-4">
+                            <hr class="flex-grow-1">
+                            <span class="mx-3 text-muted small">Don't have an account?</span>
+                            <hr class="flex-grow-1">
+                        </div>
+
+                        <!-- Sign Up Link -->
+                        <a href="{{ url_for('register') }}" class="btn btn-lg btn-outline-primary w-100 fw-bold rounded-3 py-2">
+                            <i class="fas fa-user-plus me-2"></i>Create Account
+                        </a>
+
+                        <!-- Additional Info -->
+                        <p class="text-center text-muted small mt-4">
+                            <i class="fas fa-lock me-1"></i>Your data is secure and private
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-gradient-auth {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+    }
+    
+    .card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2) !important;
+    }
+    
+    .form-control-lg {
+        padding: 12px 15px;
+        font-size: 1rem;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control-lg:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+    }
+    
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #5568d3 0%, #6a3f91 100%);
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
