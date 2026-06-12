@@ -1,175 +1,272 @@
-💰 BudgetHub – Multi-User Personal Finance & Business Expense Management Platform
+# 💰 BudgetHub - Multi-User Personal Finance & Business Expense Management Platform
 
-A modern full-stack web application that helps individuals, freelancers, startups, and businesses track income, expenses, and financial activities through an interactive dashboard, analytics engine, and secure user authentication system.
+A modern full-stack web application built with Flask that helps individuals, freelancers, startups, and businesses manage finances through secure authentication, transaction tracking, business-specific categorization, and interactive analytics.
 
-BudgetHub provides business-specific financial categorization, real-time insights, data visualization, and comprehensive transaction management while maintaining complete data isolation for every user.
+BudgetHub enables users to monitor credited and debited transactions, visualize financial trends, and gain valuable insights into their spending habits using dynamic dashboards and reports.
 
-🚀 Live Features
-    🔐 Authentication & Security
-      User Registration & Login
-      Secure Password Hashing
-      Session Management using Flask-Login
-      Protected Routes
-      User-Specific Data Isolation
-      Email & Username Validation
-    💳 Transaction Management
-      Add Transactions
-      Edit Transactions
-      Delete Transactions
-      View Transaction History
-      Recurring Transaction Support
-      Transaction Search & Filtering
-    📊 Dashboard
-      Monthly Credited Summary
-      Monthly Debited Summary
-      Current Balance Overview
-      Recent Transaction Feed
-      Dynamic Financial Statistics
-    📈 Analytics
-      Category-wise Spending Breakdown
-      Income vs Expense Analysis
-      Monthly Trend Analysis
-      Top Transactions Report
-      Financial Performance Insights
-    🏢 Business Type Support
-      Users can choose from:
-        Personal Finance
-        Freelancer
-        Retail Store
-        Restaurant / Cafe
-        Service Business
-        E-Commerce
-        Startup
-      Each business type automatically receives customized financial categories.
-    🎨 User Experience
-      Responsive Design
-      Dark Mode Support
-      Mobile Friendly Layout
-      Interactive Charts
-      Modern UI Components
-      Smooth Animations
-      Accessibility Support
-    📤 Data Management
-      CSV Export
-      Custom Categories
-      User Profile Management
-      Persistent Database Storage
+---
 
-🎯 Project Objectives
-The primary goal of BudgetHub is to provide an easy-to-use financial management solution for both individuals and small businesses.
-Objectives include:
-  Recording financial transactions efficiently
-  Managing income and expenses systematically
-  Generating meaningful financial insights
-  Supporting multiple business domains
-  Providing secure multi-user access
-  Improving budgeting and spending awareness
+## 🚀 Features
 
-🛠 Technology Stack
-  Backend
-    Technology	Purpose
-    Python 3.14	Core Programming Language
-    Flask 2.3.3	Web Framework
-    Flask-Login 0.6.2	Authentication
-    Flask-SQLAlchemy 3.1.1	ORM Integration
-    SQLAlchemy 2.0+	Database Operations
-    SQLite	Database
-    Werkzeug 2.3.7	Security & Password Hashing
-    python-dotenv	Environment Management
-  Frontend
-    Technology	Purpose
-    HTML5	Structure
-    CSS3	Styling
-    Bootstrap 5.3	Responsive Design
-    JavaScript ES6+	Frontend Logic
-    Chart.js 4.4	Data Visualization
-    Font Awesome	Icons
+### 🔐 Authentication & Security
 
+* Secure User Registration and Login
+* Password Hashing using Werkzeug
+* Session Management with Flask-Login
+* Protected Routes
+* User-Specific Data Isolation
+* Email and Username Validation
 
-🏗 System Architecture
-┌───────────────────────┐
-│       Frontend        │
-│ HTML • CSS • JS       │
-└──────────┬────────────┘
-           │
-           ▼
-┌───────────────────────┐
-│      Flask Routes     │
-│ Authentication Layer  │
-└──────────┬────────────┘
-           │
-           ▼
-┌───────────────────────┐
-│    Business Logic     │
-│ Validation & APIs     │
-└──────────┬────────────┘
-           │
-           ▼
-┌───────────────────────┐
-│     SQLAlchemy ORM    │
-└──────────┬────────────┘
-           │
-           ▼
-┌───────────────────────┐
-│    SQLite Database    │
-└───────────────────────┘
+### 💳 Transaction Management
 
+* Add Transactions
+* Edit Transactions
+* Delete Transactions
+* View Transaction History
+* Recurring Transaction Support
+* Advanced Filtering and Search
 
-🔄 Application Workflow
-    User Registration
-            ↓
-    Business Type Selection
-            ↓
-    Automatic Category Generation
-            ↓
-    User Login
-            ↓
-    Dashboard Access
-            ↓
-    Transaction CRUD Operations
-            ↓
-    Analytics & Reporting
-            ↓
-    Data Export
+### 📊 Dashboard
 
+* Monthly Credited Summary
+* Monthly Debited Summary
+* Balance Overview
+* Recent Transactions Feed
+* Real-Time Statistics
 
-📊 Database Schema (created when the aplication runs)
-  Users Table
-    Users
-    ├── id
-    ├── username
-    ├── email
-    ├── password_hash
-    ├── full_name
-    ├── business_type
-    └── created_at
-  Categories Table
-    Categories
-    ├── id
-    ├── user_id
-    ├── name
-    ├── type
-    ├── color
-    └── created_at
-  Transactions Table
-    Transactions
-    ├── id
-    ├── user_id
-    ├── amount
-    ├── category
-    ├── type
-    ├── date
-    ├── description
-    ├── is_recurring
-    └── timestamps
+### 📈 Analytics
 
+* Category-wise Spending Analysis
+* Income vs Expense Comparison
+* Monthly Financial Trends
+* Top Transactions Report
+* Financial Performance Insights
 
-📁 Project Structure
+### 🏢 Business Type Support
+
+Users can choose from:
+
+* Personal Finance
+* Freelancer
+* Retail Store
+* Restaurant / Cafe
+* Service Business
+* E-Commerce
+* Startup
+
+Each business type automatically receives customized financial categories.
+
+### 🎨 User Experience
+
+* Responsive Design
+* Dark Mode Support
+* Interactive Charts
+* Modern UI Components
+* Smooth Animations
+* Accessibility Support
+
+### 📤 Data Management
+
+* CSV Export
+* Custom Categories
+* User Profile Management
+* Persistent SQLite Storage
+
+---
+
+## 🎯 Project Objectives
+
+The primary objective of BudgetHub is to provide a centralized platform for individuals and businesses to manage financial activities efficiently.
+
+### Goals
+
+* Track financial transactions accurately
+* Generate meaningful financial insights
+* Support multiple business domains
+* Provide secure multi-user access
+* Improve budgeting and spending awareness
+* Deliver an intuitive user experience
+
+---
+
+## 🛠 Tech Stack
+
+### Backend
+
+| Technology             | Purpose                   |
+| ---------------------- | ------------------------- |
+| Python 3.14            | Core Programming Language |
+| Flask 2.3.3            | Web Framework             |
+| Flask-Login 0.6.2      | Authentication            |
+| Flask-SQLAlchemy 3.1.1 | ORM Integration           |
+| SQLAlchemy 2.0+        | Database Operations       |
+| SQLite                 | Database                  |
+| Werkzeug 2.3.7         | Password Hashing          |
+| python-dotenv          | Environment Variables     |
+
+### Frontend
+
+| Technology      | Purpose            |
+| --------------- | ------------------ |
+| HTML5           | Structure          |
+| CSS3            | Styling            |
+| Bootstrap 5.3   | Responsive Design  |
+| JavaScript ES6+ | Client-Side Logic  |
+| Chart.js 4.4    | Data Visualization |
+| Font Awesome    | Icons              |
+
+---
+
+## 🏗 System Architecture
+
+```text
+Frontend (HTML, CSS, JS)
+          │
+          ▼
+     Flask Routes
+          │
+          ▼
+   Business Logic Layer
+          │
+          ▼
+    SQLAlchemy ORM
+          │
+          ▼
+      SQLite DB
+```
+
+---
+
+## 🔄 Application Workflow
+
+1. User registers and selects a business type.
+2. Default categories are generated automatically.
+3. User logs into the system.
+4. Transactions are created, updated, viewed, or deleted.
+5. Data is stored securely in SQLite.
+6. Dashboard and analytics pages fetch user-specific data.
+7. Charts and reports are generated dynamically.
+8. Users can export financial data as CSV files.
+
+---
+
+## 🌍 Business Categories
+
+### Personal Finance
+
+**Credited**
+
+* Salary
+* Freelance
+* Investment
+* Bonus
+* Refund
+* Gift
+
+**Debited**
+
+* Food
+* Transport
+* Rent
+* Entertainment
+* Utilities
+* Healthcare
+* Shopping
+* Bills
+* Subscriptions
+
+### Freelancer
+
+**Credited**
+
+* Project Income
+* Consulting
+* Retainer
+* Bonus
+* Refund
+
+**Debited**
+
+* Software Tools
+* Equipment
+* Taxes
+* Insurance
+* Office Supplies
+* Internet
+
+### Startup
+
+**Credited**
+
+* Funding
+* Revenue
+* Investment
+* Grants
+
+**Debited**
+
+* Salaries
+* Development
+* Marketing
+* Infrastructure
+* Legal
+* Tools
+
+Additional categories are generated automatically based on the selected business type.
+
+---
+
+## 📊 Database Schema
+
+### Users
+
+```sql
+id
+username
+email
+password_hash
+full_name
+business_type
+created_at
+```
+
+### Categories
+
+```sql
+id
+user_id
+name
+type
+color
+created_at
+```
+
+### Transactions
+
+```sql
+id
+user_id
+amount
+category
+type
+date
+description
+is_recurring
+created_at
+updated_at
+```
+
+---
+
+## 📁 Project Structure
+
+```text
 BudgetHub/
 │
 ├── app.py
 ├── models.py
 ├── requirements.txt
+│
 ├── templates/
 │   ├── base.html
 │   ├── login.html
@@ -178,156 +275,213 @@ BudgetHub/
 │   ├── transactions.html
 │   ├── analytics.html
 │   └── settings.html
+│
 ├── static/
 │   ├── css/
 │   │   └── style.css
+│   │
 │   └── js/
 │       ├── common.js
 │       ├── dashboard.js
 │       ├── transactions.js
 │       ├── analytics.js
 │       └── settings.js
+│
 └── budget_tracker.db
+```
 
+---
 
-⚙️ Installation & Setup
-  Prerequisites
-  Python 3.14+
-  pip
-  Git (optional)
+## ⚙️ Installation & Setup
 
-Clone Repository
-git clone https://github.com/MeloniJQ/azentrix-fullstack-task1.git
-cd azentrix-fullstack-task1
+### Prerequisites
 
-Create Virtual Environment
-  python -m venv venv
-  Activate Environment:
-    Windows
-      venv\Scripts\activate
-    Linux / macOS
-      source venv/bin/activate
+* Python 3.14+
+* pip
 
-Install Dependencies
-  pip install -r requirements.txt
+### Clone Repository
 
-Run Application
-  python app.py
-Open Browser
-  http://localhost:5000
-📡 API Endpoints
-  Authentication
-    POST /register
-    POST /login
-    GET  /logout
-  Transactions
-    GET    /api/transactions
-    POST   /api/transactions
-    GET    /api/transactions/<id>
-    PUT    /api/transactions/<id>
-    DELETE /api/transactions/<id>
-  Categories
-    GET    /api/categories
-    POST   /api/categories
-    PUT    /api/categories/<id>
-    DELETE /api/categories/<id>
-  Reports
-    GET /api/summary
-    GET /api/monthly-stats
-    GET /api/analytics
-  User
-    GET /api/user
-    PUT /api/user
-  Export
-    GET /api/export-csv
+```bash
+git clone <repository-url>
+cd BudgetHub
+```
 
-🔒 Security Features
-  Password Hashing using Werkzeug
-  Session-Based Authentication
-  User Data Isolation
-  SQL Injection Prevention through ORM
-  Input Validation
-  Unique Email Validation
-  Protected Routes
+### Create Virtual Environment
 
-📈 Key Technical Implementations
-  Authentication System
-  Flask-Login Integration
-  Login Required Routes
-  Secure Session Management
-  Analytics Engine
-  Monthly Financial Calculations
-  Category Analysis
-  Balance Tracking
-  Spending Trends
-  Database Layer
-  SQLAlchemy ORM
-  Relational Database Design
-  One-to-Many Relationships
-  Frontend Features
-  AJAX API Communication
-  Dynamic Dashboard Updates
-  Interactive Charts
-  Theme Persistence
+```bash
+python -m venv venv
+```
 
+### Activate Environment
 
-⭐ Why BudgetHub Stands Out
-Unlike traditional budget tracking systems, BudgetHub provides:
-  Multi-user Architecture
-  Business-specific Financial Categories
-  Secure User Isolation
-  Analytics Dashboard
-  CSV Export Functionality
-  Dark Mode Support
-  Fully Responsive UI
-  Modern REST API Design
+#### Windows
 
-🚀 Future Enhancements
-  AI-Based Spending Prediction
-  Financial Recommendation System
-  OCR Receipt Scanning
-  Voice Transaction Entry
-  Google OAuth Login
-  Email Notifications
-  Mobile Application
-  Cloud Database Support
-  Budget Goal Tracking
-  Automated Recurring Transactions
+```bash
+venv\Scripts\activate
+```
 
-🎓 Learning Outcomes
+#### Linux / macOS
+
+```bash
+source venv/bin/activate
+```
+
+### Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### Run Application
+
+```bash
+python app.py
+```
+
+### Open Browser
+
+```text
+http://localhost:5000
+```
+
+---
+
+## 📡 API Endpoints
+
+### Authentication
+
+```http
+POST /register
+POST /login
+GET  /logout
+```
+
+### Transactions
+
+```http
+GET    /api/transactions
+POST   /api/transactions
+GET    /api/transactions/<id>
+PUT    /api/transactions/<id>
+DELETE /api/transactions/<id>
+```
+
+### Categories
+
+```http
+GET    /api/categories
+POST   /api/categories
+PUT    /api/categories/<id>
+DELETE /api/categories/<id>
+```
+
+### Reports
+
+```http
+GET /api/summary
+GET /api/monthly-stats
+GET /api/analytics
+```
+
+### User
+
+```http
+GET /api/user
+PUT /api/user
+```
+
+### Export
+
+```http
+GET /api/export-csv
+```
+
+---
+
+## 🔒 Security Features
+
+* Password Hashing
+* Session-Based Authentication
+* User Data Isolation
+* ORM-Based SQL Injection Protection
+* Server-Side Input Validation
+* Protected Routes
+* Unique Email Validation
+
+---
+
+## ⭐ Key Highlights
+
+* Multi-User Architecture
+* Business-Type Based Categories
+* Interactive Analytics Dashboard
+* CSV Export Support
+* Dark Mode Implementation
+* Responsive User Interface
+* RESTful API Design
+* Secure Authentication System
+
+---
+
+## 🚀 Future Enhancements
+
+* AI-Based Spending Prediction
+* Budget Recommendation System
+* OCR Receipt Scanning
+* Voice Transaction Entry
+* Google OAuth Login
+* Email Notifications
+* Mobile Application
+* Cloud Database Integration
+* Budget Goal Tracking
+* Automated Recurring Transactions
+
+---
+
+## 🎓 Learning Outcomes
+
 This project demonstrates:
-  Flask Application Development
-  Authentication Systems
-  Database Design
-  SQLAlchemy ORM
-  REST API Development
-  Responsive Web Design
-  Data Visualization
-  Session Management
-  Frontend-Backend Integration
 
-👩‍💻 Author
-Meloni Jonita
+* Flask Web Development
+* Authentication Systems
+* SQLAlchemy ORM
+* Database Design
+* REST API Development
+* Responsive Web Design
+* Data Visualization
+* Session Management
+* Frontend and Backend Integration
+
+---
+
+## 👩‍💻 Author
+
+**Meloni Jonita**
+
 Bachelor of Engineering – Computer Science
 
-Built Using
-  Python
-  Flask
-  SQLAlchemy
-  SQLite
-  Bootstrap
-  JavaScript
-  Chart.js
+### Technologies Used
 
-📄 License
+* Python
+* Flask
+* SQLAlchemy
+* SQLite
+* Bootstrap
+* JavaScript
+* Chart.js
+
+---
+
+## 📄 License
 
 This project is developed for educational and learning purposes.
 
-🌟 Acknowledgements
+---
 
-Special thanks to the open-source community and the developers behind:
+## 🌟 Acknowledgements
 
-Flask
-SQLAlchemy
-Bootstrap
-Chart.js
+Special thanks to the open-source communities behind Flask, SQLAlchemy, Bootstrap, Chart.js, and other tools that made this project possible.
+
+---
+
+### 💰 BudgetHub – Track Smart. Spend Smarter.
