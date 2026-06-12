@@ -15,15 +15,28 @@ app = Flask(__name__)
 # Configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///budget_tracker.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'your-secret-key-change-this-in-production'
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
+import random
+import string
 
+# Generate a random SECRET_KEY on each startup (invalidates old session cookies)
+app.config['SECRET_KEY'] = ''.join(random.choices(string.ascii_letters + string.digits, k=32))
+
+# Session Configuration - Use ONLY memory (don't save to disk)
+app.config['SESSION_PERMANENT'] = False
+app.config['SESSION_REFRESH_EACH_REQUEST'] = True
+app.config['SESSION_COOKIE_SECURE'] = False
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_TYPE'] = 'null'  # ← ADD THIS LINE - Don't persist sessions
+
+# Import Session extension for null sessions
+from flask.sessions import SessionMixin
 # Initialize extensions
 db.init_app(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message = 'Please log in to access this page.'
+login_manager.session_protection = "strong"  # Add this line - strong session protection
 login_manager.login_message_category = 'info'
 
 # Create database tables
@@ -31,12 +44,31 @@ with app.app_context():
     db.create_all()
 
 
+
+# ==================== CLEAR SESSIONS ON APP STARTUP ====================
+
+# Force logout all users when app starts
+@app.before_request
+def before_request():
+    """Run before each request"""
+    from flask import session
+    # Sessions won't persist due to SESSION_TYPE = 'null'
+    pass
 # ==================== USER LOADER ====================
 
 @login_manager.user_loader
 def load_user(user_id):
     return db.session.get(User, int(user_id))
 
+
+# ==================== ROOT ROUTE ====================
+
+@app.route('/')
+def index():
+    """Root route - redirect to login or dashboard"""
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
+    return redirect(url_for('login'))
 
 # ==================== BUSINESS TYPE CATEGORIES ====================
 
@@ -183,8 +215,8 @@ def login():
         user = User.query.filter_by(username=username).first()
         
         if user and user.check_password(password):
-            session.permanent = True
-            login_user(user, remember=True)
+            session.permanent = False                   # Don't persist session
+            login_user(user, remember=False)            # Don't remember user
             next_page = request.args.get('next')
             return redirect(next_page) if next_page else redirect(url_for('dashboard'))
         else:

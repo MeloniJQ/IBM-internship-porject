@@ -32,13 +32,11 @@ A simple, responsive, and beginner-friendly budget tracking application built wi
 - **Category Management**: Organize transactions by predefined or custom categories
 - **Data Persistence**: SQLite database for reliable data storage
 - **Responsive Design**: Mobile, tablet, and desktop friendly interface
-- **Dark Mode**: Toggle between light and dark themes
 
 ### Advanced Features ✨
 - **Search & Filter**: Filter by month, category, or transaction type
 - **Export CSV**: Download all transactions as a CSV file for analysis
 - **Recurring Entries**: Mark transactions as recurring for future reference
-- **Overspend Alerts**: Get notified when category expenses exceed threshold
 - **Date Range Filtering**: Custom date range selection for deep analysis
 - **Auto-refresh**: Dashboard updates every 5 seconds
 - **Accessibility**: ARIA labels and keyboard navigation support
