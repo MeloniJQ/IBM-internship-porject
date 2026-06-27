@@ -485,3 +485,20 @@ Special thanks to the open-source communities behind Flask, SQLAlchemy, Bootstra
 ---
 
 ### 💰 BudgetHub – Track Smart. Spend Smarter.
+
+Below are a few screen shots attached 
+
+<img width="1911" height="855" alt="image" src="https://github.com/user-attachments/assets/b4d38486-5b57-4dac-9afc-0c4c86a607c8" />
+
+<img width="1896" height="863" alt="Screenshot 2026-06-27 223032" src="https://github.com/user-attachments/assets/ef021f06-88e4-48f3-9adf-5b6713ff262b" />
+
+<img width="1908" height="868" alt="image" src="https://github.com/user-attachments/assets/da6e0603-60c4-4767-8413-fd50b10df953" />
+
+<img width="1886" height="863" alt="image" src="https://github.com/user-attachments/assets/d80b9486-0ab9-429e-98a6-e942bf4bf622" />
+
+<img width="1067" height="785" alt="image" src="https://github.com/user-attachments/assets/d9fcf3a4-d41a-4a60-971e-3df1937b2c83" />
+<img width="922" height="772" alt="image" src="https://github.com/user-attachments/assets/689cb6db-7352-4f59-81c8-e0bd4bd04083" />
+<img width="930" height="768" alt="image" src="https://github.com/user-attachments/assets/b03d6d96-b4c5-4c03-90d9-aa6a2970718b" />
+
+
+
