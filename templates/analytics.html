@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - BudgetHub{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="display-6 fw-bold mb-2">
+                <i class="fas fa-chart-line me-2 text-gradient"></i>Analytics & Reports
+            </h1>
+            <p class="text-muted">Deep dive into your spending patterns and insights</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <input type="month" id="analyticsMonth" class="form-control form-control-lg" style="max-width: 200px;">
+        </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm stat-card">
+                <div class="card-body p-4">
+                    <h6 class="text-muted small mb-2">
+                        <i class="fas fa-arrow-down text-success me-2"></i>Total Credited
+                    </h6>
+                    <h3 class="text-success fw-bold mb-0" id="analyticsCredited">₹0.00</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm stat-card">
+                <div class="card-body p-4">
+                    <h6 class="text-muted small mb-2">
+                        <i class="fas fa-arrow-up text-danger me-2"></i>Total Debited
+                    </h6>
+                    <h3 class="text-danger fw-bold mb-0" id="analyticsDebited">₹0.00</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm stat-card">
+                <div class="card-body p-4">
+                    <h6 class="text-muted small mb-2">
+                        <i class="fas fa-wallet text-primary me-2"></i>Net Balance
+                    </h6>
+                    <h3 class="text-primary fw-bold mb-0" id="analyticsBalance">₹0.00</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm stat-card">
+                <div class="card-body p-4">
+                    <h6 class="text-muted small mb-2">
+                        <i class="fas fa-exchange-alt text-info me-2"></i>Transactions
+                    </h6>
+                    <h3 class="text-info fw-bold mb-0" id="transactionCount">0</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="row g-4 mb-4">
+        <!-- Category Distribution -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light border-0 p-4">
+                    <h6 class="mb-0 fw-bold">
+                        <i class="fas fa-pie-chart me-2 text-success"></i>Spending Distribution
+                    </h6>
+                </div>
+                <div class="card-body p-4">
+                    <canvas id="distributionChart" class="chart-canvas"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comparison Pie -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light border-0 p-4">
+                    <h6 class="mb-0 fw-bold">
+                        <i class="fas fa-balance-scale me-2 text-warning"></i>Credited vs Debited
+                    </h6>
+                </div>
+                <div class="card-body p-4">
+                    <canvas id="comparisonChart" class="chart-canvas"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Breakdown Table -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-light border-0 p-4">
+            <h6 class="mb-0 fw-bold">
+                <i class="fas fa-list me-2"></i>Category-wise Breakdown
+            </h6>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Category</th>
+                        <th class="text-end">Amount</th>
+                        <th class="text-end">Percentage</th>
+                        <th>Progress</th>
+                    </tr>
+                </thead>
+                <tbody id="categoryBreakdown">
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-5">
+                            No data available
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Top Expenses -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light border-0 p-4">
+            <h6 class="mb-0 fw-bold">
+                <i class="fas fa-trophy me-2"></i>Top 10 Transactions
+            </h6>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Category</th>
+                        <th>Description</th>
+                        <th>Type</th>
+                        <th class="text-end">Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="topTransactions">
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-5">
+                            No transactions yet
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .text-gradient {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .stat-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-left: 4px solid #e9ecef;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    .chart-canvas {
+        max-height: 300px;
+    }
+    
+    .progress-bar-animated {
+        animation: progress-bar-stripes 1s linear infinite;
+    }
+</style>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/analytics.js') }}"></script>
+{% endblock %}
