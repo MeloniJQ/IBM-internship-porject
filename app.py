@@ -17,7 +17,9 @@ load_dotenv()
 app = Flask(__name__)
 
 # Configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///budget_tracker.db'
+# DATABASE_URL can be overridden via environment variable (e.g. in Docker/production).
+# Defaults to the original relative SQLite path used in local development.
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///budget_tracker.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 import random
 import string
@@ -719,4 +721,6 @@ def forbidden(error):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    debug_mode = os.environ.get('FLASK_DEBUG', 'true').lower() in ('1', 'true', 'yes')
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=debug_mode, host='0.0.0.0', port=port)
