@@ -6,8 +6,11 @@ from sqlalchemy import func
 import csv
 import io
 import os
+from dotenv import load_dotenv
 import llm
 from werkzeug.security import generate_password_hash
+
+load_dotenv()
 
 # ==================== APPLICATION SETUP ====================
 
@@ -602,6 +605,37 @@ def api_user():
 
 
 # ==================== API - GEMINI / LLM INTEGRATION ====================
+
+def _build_financial_context(user):
+    """Summarize the user's transactions by month so the assistant can answer
+    questions about actual income/expense/profit instead of guessing."""
+    rows = db.session.query(
+        func.strftime('%Y-%m', Transaction.date).label('month'),
+        Transaction.type,
+        func.sum(Transaction.amount)
+    ).filter(
+        Transaction.user_id == user.id
+    ).group_by('month', Transaction.type).order_by('month').all()
+
+    monthly = {}
+    for month, ttype, total in rows:
+        monthly.setdefault(month, {'credited': 0.0, 'debited': 0.0})
+        monthly[month][ttype] = float(total)
+
+    if not monthly:
+        return "The user has no recorded transactions yet."
+
+    lines = ["Monthly financial summary (currency: INR):"]
+    for month in sorted(monthly.keys()):
+        income = monthly[month]['credited']
+        expense = monthly[month]['debited']
+        profit = income - expense
+        lines.append(
+            f"- {month}: income {income:.2f}, expense {expense:.2f}, profit {profit:.2f}"
+        )
+    return "\n".join(lines)
+
+
 @app.route('/api/gemini', methods=['POST'])
 @login_required
 def api_gemini():
@@ -618,8 +652,16 @@ def api_gemini():
     model = data.get('model')
     max_tokens = data.get('max_tokens', 512)
 
+    context = _build_financial_context(current_user)
+    full_prompt = (
+        "You are a budgeting assistant. Answer the user's question using ONLY "
+        "the financial data below. If the data doesn't cover the period or "
+        "detail asked about, say so explicitly instead of guessing.\n\n"
+        f"{context}\n\nQuestion: {prompt}"
+    )
+
     try:
-        result = llm.ask_gemini(prompt, model=model, max_tokens=max_tokens)
+        result = llm.ask_gemini(full_prompt, model=model, max_tokens=max_tokens)
         return jsonify({'response': result})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
