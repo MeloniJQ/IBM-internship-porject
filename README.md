@@ -103,6 +103,7 @@ The primary objective of BudgetHub is to provide a centralized platform for indi
 | SQLite                 | Database                  |
 | Werkzeug 2.3.7         | Password Hashing          |
 | python-dotenv          | Environment Variables     |
+| requests               | HTTP client for the AI Assistant's OpenRouter/Gemini calls |
 
 ### Frontend
 
@@ -265,7 +266,10 @@ BudgetHub/
 │
 ├── app.py
 ├── models.py
+├── llm.py                # AI Assistant adapter (OpenRouter/Gemini)
 ├── requirements.txt
+├── .env                  # your local secrets (gitignored, not committed)
+├── .env.example           # template — copy to .env and fill in
 │
 ├── templates/
 │   ├── base.html
@@ -332,6 +336,14 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+### Configure Environment Variables
+
+```bash
+cp .env.example .env
+```
+
+Then edit `.env` and add your OpenRouter API key — required for the AI Budget Assistant feature to work. See [AI Budget Assistant](#-ai-budget-assistant-gemini-via-openrouter) below for details.
+
 ### Run Application
 
 ```bash
@@ -396,46 +408,59 @@ PUT /api/user
 GET /api/export-csv
 ```
 
----
+### AI Assistant
 
-## 🧠 Gemini / LLM Integration
-
-This project includes a small, flexible adapter to call a Gemini-compatible LLM endpoint. It is intentionally generic so you can point it at a Gemini/Vertex/other REST endpoint that accepts a JSON payload and returns generated text.
-
-Configuration (environment variables):
-
-- `GEMINI_API_URL` — Full URL to POST generation requests to (e.g. `https://.../generate`).
-- `GEMINI_API_KEY` — API key or bearer token for the endpoint.
-- `GEMINI_SERVER_KEY` — (optional) a server API key that protects `/api/gemini_key` for service-to-service calls.
-
-How it works:
-
-- Use the helper `llm.ask_gemini(prompt, model=None, max_tokens=512)` from Python.
-- A protected Flask endpoint is available at `POST /api/gemini` (requires authenticated session). Send JSON `{ "prompt": "your question" }`.
-
-Quick local test (Python):
-
-```python
-import os
-from llm import ask_gemini
-
-os.environ['GEMINI_API_URL'] = 'https://your-gemini-endpoint.example/v1/generate'
-os.environ['GEMINI_API_KEY'] = 'your_api_key_here'
-
-print(ask_gemini('Summarize these transactions and suggest savings ideas.'))
+```http
+POST /api/gemini        # requires logged-in session
+POST /api/gemini_key    # server-to-server, requires X-API-KEY header if GEMINI_SERVER_KEY is set
 ```
 
-If you want to call the Flask endpoint directly, log in via the UI and then POST JSON to `/api/gemini` with your prompt. The endpoint will return `{ "response": "..." }` on success.
+---
 
-Notes:
+## 🧠 AI Budget Assistant (Gemini via OpenRouter)
 
-- The adapter is intentionally tolerant of different response shapes from Gemini-like services. If your provider uses a different field layout, adjust `llm.py` to extract the desired text.
+The dashboard's **"Ask Assistant"** modal lets a logged-in user ask natural-language questions about their own finances (e.g. *"what is my profit for June 2026?"*). Behind the scenes:
 
-Server testing helper:
+1. The browser (`static/js/dashboard.js`) POSTs `{ "prompt": "..." }` to `POST /api/gemini`.
+2. The Flask route (`app.py`, `api_gemini`) pulls the current user's transactions, groups them by month with SQLAlchemy (`_build_financial_context`), and builds a monthly income/expense/profit summary.
+3. That summary is prepended to the user's question and sent to `llm.ask_gemini()`, which POSTs to an OpenRouter chat-completions endpoint and returns the model's reply.
+4. The reply is returned as `{ "response": "..." }` and rendered in the modal.
 
-- If you want to call the LLM from a server script or CI without a user session, POST to `/api/gemini_key` and set header `X-API-KEY` to the value of `GEMINI_SERVER_KEY`.
-- If `GEMINI_SERVER_KEY` is not set in the environment, the `/api/gemini_key` endpoint will accept requests for local testing but will return a `_warning` field in the JSON response.
-- For production use with Google Vertex/Cloud, prefer authenticated service accounts and the official SDKs; this adapter is meant for quick demos and local development.
+Because the real transaction data is injected into the prompt, the assistant answers from the user's actual numbers instead of guessing — and it's told explicitly to say so if a requested period isn't in the data.
+
+### Setup
+
+1. Copy the example env file and fill in your own key:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Get a free API key from [openrouter.ai/keys](https://openrouter.ai/keys) and set it as both `OPENROUTER_API_KEY` and `GEMINI_API_KEY` in `.env` (the code accepts either name).
+
+3. `.env` variables:
+
+   | Variable             | Required | Description                                                                                                   |
+   | -------------------- | -------- | ---------------------------------------------------------------------------------------------------------------- |
+   | `GEMINI_API_URL`      | Yes      | `https://openrouter.ai/api/v1/chat/completions` — OpenRouter's chat-completions endpoint (routes to Gemini/Gemma/other models). |
+   | `OPENROUTER_API_KEY` / `GEMINI_API_KEY` | Yes (one of these) | Your OpenRouter API key. |
+   | `OPENROUTER_MODEL`    | No       | Model slug to use, e.g. `google/gemma-4-26b-a4b-it:free`. See [openrouter.ai/models](https://openrouter.ai/models). |
+   | `GEMINI_SERVER_KEY`   | No       | Protects the service-to-service `/api/gemini_key` endpoint (see below). Leave blank for local testing.       |
+
+   > ⚠️ **Free vs. paid models**: The default model, `google/gemma-4-26b-a4b-it:free`, works with **zero OpenRouter credits**. Real Gemini models (e.g. `google/gemini-2.5-flash`) require credits in your OpenRouter account (see [openrouter.ai/settings/credits](https://openrouter.ai/settings/credits)) — without them you'll get a `402 Payment Required` error. Set `OPENROUTER_MODEL` to switch once you've added credits.
+
+4. `python-dotenv` loads `.env` automatically at app startup (`load_dotenv()` in `app.py`) — no manual `export` needed.
+
+### Using it
+
+- **From the UI**: log in, click "Ask Assistant" on the dashboard, type a question, and submit.
+- **From Python**: `llm.ask_gemini(prompt, model=None, max_tokens=512)`.
+- **Server-to-server**: `POST /api/gemini_key` with header `X-API-KEY: <GEMINI_SERVER_KEY>` — useful for calling the assistant from a script or CI without a browser session. If `GEMINI_SERVER_KEY` isn't set, the endpoint allows unauthenticated requests and adds a `_note` warning to the response, for easy local testing.
+
+### Notes
+
+- The response parser (`llm._extract_text_from_response`) is tolerant of different provider response shapes (OpenAI/OpenRouter `choices[].message.content`, Gemini-native `candidates[]`, etc.).
+- For production use with Google Vertex/Cloud directly, prefer authenticated service accounts and the official SDKs — this adapter is built for quick demos and local development.
 
 ## 🔒 Security Features
 

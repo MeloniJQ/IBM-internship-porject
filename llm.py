@@ -39,9 +39,9 @@ def _build_payload(api_url: str, prompt: str, model: Optional[str], max_tokens: 
 
     if 'openrouter.ai' in normalized_url:
         payload: Dict[str, Any] = {
-            'input': prompt,
-            'max_output_tokens': int(max_tokens),
-            'model': model_value or 'gpt-4o-mini'
+            'model': model_value or 'google/gemma-4-26b-a4b-it:free',
+            'messages': [{'role': 'user', 'content': prompt}],
+            'max_tokens': int(max_tokens)
         }
     elif 'generativelanguage.googleapis.com' in normalized_url or 'googleapis.com' in normalized_url:
         payload = {
