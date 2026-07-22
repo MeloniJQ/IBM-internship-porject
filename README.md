@@ -46,6 +46,7 @@ BudgetHub enables users to monitor credited and debited transactions, visualize 
 
 Users can choose from:
 
+
 * Personal Finance
 * Freelancer
 * Retail Store
@@ -54,23 +55,25 @@ Users can choose from:
 * E-Commerce
 * Startup
 
+
+
 Each business type automatically receives customized financial categories.
 
 ### 🎨 User Experience
 
-* Responsive Design
-* Dark Mode Support
-* Interactive Charts
-* Modern UI Components
-* Smooth Animations
-* Accessibility Support
+- Responsive Design
+- Dark Mode Support
+- Interactive Charts
+- Modern UI Components
+- Smooth Animations
+- Accessibility Support
 
 ### 📤 Data Management
 
-* CSV Export
-* Custom Categories
-* User Profile Management
-* Persistent SQLite Storage
+- CSV Export
+- Custom Categories
+- User Profile Management
+- Persistent SQLite Storage
 
 ---
 
@@ -80,12 +83,12 @@ The primary objective of BudgetHub is to provide a centralized platform for indi
 
 ### Goals
 
-* Track financial transactions accurately
-* Generate meaningful financial insights
-* Support multiple business domains
-* Provide secure multi-user access
-* Improve budgeting and spending awareness
-* Deliver an intuitive user experience
+- Track financial transactions accurately
+- Generate meaningful financial insights
+- Support multiple business domains
+- Provide secure multi-user access
+- Improve budgeting and spending awareness
+- Deliver an intuitive user experience
 
 ---
 
@@ -103,6 +106,7 @@ The primary objective of BudgetHub is to provide a centralized platform for indi
 | SQLite                 | Database                  |
 | Werkzeug 2.3.7         | Password Hashing          |
 | python-dotenv          | Environment Variables     |
+| requests               | HTTP client for the AI Assistant's OpenRouter/Gemini calls |
 
 ### Frontend
 
@@ -156,61 +160,61 @@ Frontend (HTML, CSS, JS)
 
 **Credited**
 
-* Salary
-* Freelance
-* Investment
-* Bonus
-* Refund
-* Gift
+- Salary
+- Freelance
+- Investment
+- Bonus
+- Refund
+- Gift
 
 **Debited**
 
-* Food
-* Transport
-* Rent
-* Entertainment
-* Utilities
-* Healthcare
-* Shopping
-* Bills
-* Subscriptions
+- Food
+- Transport
+- Rent
+- Entertainment
+- Utilities
+- Healthcare
+- Shopping
+- Bills
+- Subscriptions
 
 ### Freelancer
 
 **Credited**
 
-* Project Income
-* Consulting
-* Retainer
-* Bonus
-* Refund
+- Project Income
+- Consulting
+- Retainer
+- Bonus
+- Refund
 
 **Debited**
 
-* Software Tools
-* Equipment
-* Taxes
-* Insurance
-* Office Supplies
-* Internet
+- Software Tools
+- Equipment
+- Taxes
+- Insurance
+- Office Supplies
+- Internet
 
 ### Startup
 
 **Credited**
 
-* Funding
-* Revenue
-* Investment
-* Grants
+- Funding
+- Revenue
+- Investment
+- Grants
 
 **Debited**
 
-* Salaries
-* Development
-* Marketing
-* Infrastructure
-* Legal
-* Tools
+- Salaries
+- Development
+- Marketing
+- Infrastructure
+- Legal
+- Tools
 
 Additional categories are generated automatically based on the selected business type.
 
@@ -265,7 +269,14 @@ BudgetHub/
 │
 ├── app.py
 ├── models.py
+├── llm.py                # AI Assistant adapter (OpenRouter/Gemini)
 ├── requirements.txt
+├── .env                  # your local secrets (gitignored, not committed)
+├── .env.example           # template — copy to .env and fill in
+│
+├── Dockerfile             # multi-stage production image
+├── docker-compose.yml     # local/production orchestration
+├── .dockerignore          # keeps build context lean
 │
 ├── templates/
 │   ├── base.html
@@ -296,8 +307,11 @@ BudgetHub/
 
 ### Prerequisites
 
-* Python 3.14+
-* pip
+- Python 3.14+
+- pip
+
+> Prefer containers? Skip straight to the [Running with Docker](#-running-with-docker)
+> section below — no local Python install required.
 
 ### Clone Repository
 
@@ -332,6 +346,14 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+### Configure Environment Variables
+
+```bash
+cp .env.example .env
+```
+
+Then edit `.env` and add your OpenRouter API key — required for the AI Budget Assistant feature to work. See [AI Budget Assistant](#-ai-budget-assistant-gemini-via-openrouter) below for details.
+
 ### Run Application
 
 ```bash
@@ -343,6 +365,134 @@ python app.py
 ```text
 http://localhost:5000
 ```
+
+---
+
+## 🐳 Running with Docker
+
+BudgetHub can be run in a container instead of a local Python install. The app is a
+single Flask service (server-rendered pages + static assets + SQLite), so it ships as
+one production image built with a multi-stage `Dockerfile`, plus a `docker-compose.yml`
+for convenient local/production orchestration (port mapping, env vars, and a persistent
+volume for the SQLite database).
+
+### Prerequisites
+
+- [Docker Engine](https://docs.docker.com/engine/install/) 24+
+- [Docker Compose](https://docs.docker.com/compose/install/) v2 (bundled with recent Docker Desktop / Docker Engine as `docker compose`)
+
+### 1. Configure environment variables
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` and set at least `OPENROUTER_API_KEY` (and `GEMINI_API_KEY`, same value) if you
+want the AI Budget Assistant to work. See [AI Budget Assistant](#-ai-budget-assistant-gemini-via-openrouter)
+for details. The app starts and works fine without these — only the `/api/gemini*`
+endpoints require them.
+
+Key variables (all optional, sensible defaults are set in `docker-compose.yml`):
+
+| Variable             | Purpose                                              | Default                                              |
+| --------------------- | ----------------------------------------------------- | ----------------------------------------------------- |
+| `PORT`                | Host port to publish                                  | `5000`                                                |
+| `DATABASE_URL`        | SQLAlchemy database URI                               | `sqlite:///budget_tracker.db` (stored in `/app/instance`) |
+| `GEMINI_API_URL`      | LLM proxy endpoint                                    | `https://openrouter.ai/api/v1/chat/completions`       |
+| `OPENROUTER_API_KEY`  | OpenRouter API key                                    | _(none — AI assistant disabled until set)_             |
+| `GEMINI_API_KEY`      | Same key as above (either name works, see `llm.py`)   | _(none)_                                              |
+| `OPENROUTER_MODEL`    | Model slug used for the AI assistant                  | `google/gemma-4-26b-a4b-it:free`                      |
+| `GEMINI_SERVER_KEY`   | Protects the server-to-server `/api/gemini_key` route | _(none — endpoint open with a warning)_                |
+
+### 2. Build and run with Docker Compose (recommended)
+
+```bash
+docker compose up --build
+```
+
+Then open:
+
+```text
+http://localhost:5000
+```
+
+The SQLite database lives on a named Docker volume (`budget_data`), so your data
+persists across `docker compose down` / rebuilds. Run in the background with:
+
+```bash
+docker compose up --build -d
+```
+
+### 3. Build and run with plain Docker (no Compose)
+
+```bash
+# Build the image
+docker build -t budgethub:latest .
+
+# Run the container (SQLite persisted to a named volume)
+docker run -d \
+  --name budgethub \
+  -p 5000:5000 \
+  --env-file .env \
+  -v budget_data:/app/instance \
+  budgethub:latest
+```
+
+### Common Docker commands
+
+| Action                          | Command                                              |
+| -------------------------------- | ----------------------------------------------------- |
+| Build the image                  | `docker build -t budgethub:latest .`                  |
+| Run the container                | `docker run -d --name budgethub -p 5000:5000 --env-file .env -v budget_data:/app/instance budgethub:latest` |
+| Run with Compose                 | `docker compose up --build -d`                        |
+| Stop the container (plain Docker)| `docker stop budgethub`                               |
+| Stop (Compose)                   | `docker compose down`                                 |
+| Rebuild after code changes       | `docker compose up --build` (or `docker build -t budgethub:latest . && docker run ...` again) |
+| View logs                        | `docker compose logs -f web` (or `docker logs -f budgethub`) |
+| Remove unused Docker resources   | `docker system prune -f` (add `--volumes` to also clear unused volumes, ⚠️ this deletes unattached SQLite data) |
+
+### How it works internally
+
+- **Base image:** `python:3.12-slim`, built in two stages — a `builder` stage installs
+  dependencies into a virtualenv (including a compiler needed only at build time), and a
+  `final` stage copies just that virtualenv and the app source, keeping the runtime image
+  slim and free of build tools.
+- **Process manager:** [Gunicorn](https://gunicorn.org/) runs the app in production
+  instead of Flask's development server, with worker count/timeout configurable via
+  `GUNICORN_WORKERS` / `GUNICORN_TIMEOUT`.
+- **Non-root user:** the container runs as an unprivileged `app` user, not root.
+- **Persistence:** `/app/instance` (where the SQLite file lives) is a Docker volume, so
+  data isn't lost when the container is recreated.
+- **Healthcheck:** the container reports healthy once `GET /login` responds successfully.
+
+### Troubleshooting
+
+- **`docker: command not found`** — Install Docker Desktop (Mac/Windows) or Docker Engine
+  (Linux) from the link in Prerequisites above.
+- **Port 5000 already in use** — Set a different host port in `.env` (`PORT=8080`) or
+  override inline: `PORT=8080 docker compose up --build`.
+- **Changes to `app.py`/templates aren't showing up** — Rebuild the image:
+  `docker compose up --build`. Source code is copied into the image at build time, it
+  isn't live-mounted by default.
+- **AI Budget Assistant returns an error / "GEMINI_API_URL and GEMINI_API_KEY ... must be
+  set"** — Make sure `.env` exists (copied from `.env.example`) and contains a real
+  `OPENROUTER_API_KEY`, then restart: `docker compose up --build`.
+- **Database seems empty after `docker compose down` and back up** — Confirm you didn't
+  run `docker compose down --volumes`, which deletes the `budget_data` volume along with
+  the SQLite file. Check volumes with `docker volume ls`.
+- **"permission denied" writing to `/app/instance`** — This can happen if a bind mount
+  (instead of the named volume) is used and the host directory isn't writable by the
+  container's non-root `app` user. Prefer the named volume shown above, or
+  `chmod -R 777` the host directory if you must bind-mount it.
+- **Container exits immediately** — Check logs with `docker compose logs web` (or
+  `docker logs budgethub`); a missing/invalid `DATABASE_URL` or a Python import error are
+  the most common causes.
+- **Rebuilding from scratch (clean slate)** —
+  ```bash
+  docker compose down
+  docker compose build --no-cache
+  docker compose up
+  ```
 
 ---
 
@@ -396,45 +546,97 @@ PUT /api/user
 GET /api/export-csv
 ```
 
+### AI Assistant
+
+```http
+POST /api/gemini        # requires logged-in session
+POST /api/gemini_key    # server-to-server, requires X-API-KEY header if GEMINI_SERVER_KEY is set
+```
+
 ---
+
+## 🧠 AI Budget Assistant (Gemini via OpenRouter)
+
+The dashboard's **"Ask Assistant"** modal lets a logged-in user ask natural-language questions about their own finances (e.g. *"what is my profit for June 2026?"*). Behind the scenes:
+
+1. The browser (`static/js/dashboard.js`) POSTs `{ "prompt": "..." }` to `POST /api/gemini`.
+2. The Flask route (`app.py`, `api_gemini`) pulls the current user's transactions, groups them by month with SQLAlchemy (`_build_financial_context`), and builds a monthly income/expense/profit summary.
+3. That summary is prepended to the user's question and sent to `llm.ask_gemini()`, which POSTs to an OpenRouter chat-completions endpoint and returns the model's reply.
+4. The reply is returned as `{ "response": "..." }` and rendered in the modal.
+
+Because the real transaction data is injected into the prompt, the assistant answers from the user's actual numbers instead of guessing — and it's told explicitly to say so if a requested period isn't in the data.
+
+### Setup
+
+1. Copy the example env file and fill in your own key:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Get a free API key from [openrouter.ai/keys](https://openrouter.ai/keys) and set it as both `OPENROUTER_API_KEY` and `GEMINI_API_KEY` in `.env` (the code accepts either name).
+
+3. `.env` variables:
+
+   | Variable             | Required | Description                                                                                                   |
+   | -------------------- | -------- | ---------------------------------------------------------------------------------------------------------------- |
+   | `GEMINI_API_URL`      | Yes      | `https://openrouter.ai/api/v1/chat/completions` — OpenRouter's chat-completions endpoint (routes to Gemini/Gemma/other models). |
+   | `OPENROUTER_API_KEY` / `GEMINI_API_KEY` | Yes (one of these) | Your OpenRouter API key. |
+   | `OPENROUTER_MODEL`    | No       | Model slug to use, e.g. `google/gemma-4-26b-a4b-it:free`. See [openrouter.ai/models](https://openrouter.ai/models). |
+   | `GEMINI_SERVER_KEY`   | No       | Protects the service-to-service `/api/gemini_key` endpoint (see below). Leave blank for local testing.       |
+
+   > ⚠️ **Free vs. paid models**: The default model, `google/gemma-4-26b-a4b-it:free`, works with **zero OpenRouter credits**. Real Gemini models (e.g. `google/gemini-2.5-flash`) require credits in your OpenRouter account (see [openrouter.ai/settings/credits](https://openrouter.ai/settings/credits)) — without them you'll get a `402 Payment Required` error. Set `OPENROUTER_MODEL` to switch once you've added credits.
+
+4. `python-dotenv` loads `.env` automatically at app startup (`load_dotenv()` in `app.py`) — no manual `export` needed.
+
+### Using it
+
+- **From the UI**: log in, click "Ask Assistant" on the dashboard, type a question, and submit.
+- **From Python**: `llm.ask_gemini(prompt, model=None, max_tokens=512)`.
+- **Server-to-server**: `POST /api/gemini_key` with header `X-API-KEY: <GEMINI_SERVER_KEY>` — useful for calling the assistant from a script or CI without a browser session. If `GEMINI_SERVER_KEY` isn't set, the endpoint allows unauthenticated requests and adds a `_note` warning to the response, for easy local testing.
+
+### Notes
+
+- The response parser (`llm._extract_text_from_response`) is tolerant of different provider response shapes (OpenAI/OpenRouter `choices[].message.content`, Gemini-native `candidates[]`, etc.).
+- For production use with Google Vertex/Cloud directly, prefer authenticated service accounts and the official SDKs — this adapter is built for quick demos and local development.
 
 ## 🔒 Security Features
 
-* Password Hashing
-* Session-Based Authentication
-* User Data Isolation
-* ORM-Based SQL Injection Protection
-* Server-Side Input Validation
-* Protected Routes
-* Unique Email Validation
+- Password Hashing
+- Session-Based Authentication
+- User Data Isolation
+- ORM-Based SQL Injection Protection
+- Server-Side Input Validation
+- Protected Routes
+- Unique Email Validation
 
 ---
 
 ## ⭐ Key Highlights
 
-* Multi-User Architecture
-* Business-Type Based Categories
-* Interactive Analytics Dashboard
-* CSV Export Support
-* Dark Mode Implementation
-* Responsive User Interface
-* RESTful API Design
-* Secure Authentication System
+- Multi-User Architecture
+- Business-Type Based Categories
+- Interactive Analytics Dashboard
+- CSV Export Support
+- Dark Mode Implementation
+- Responsive User Interface
+- RESTful API Design
+- Secure Authentication System
 
 ---
 
 ## 🚀 Future Enhancements
 
-* AI-Based Spending Prediction
-* Budget Recommendation System
-* OCR Receipt Scanning
-* Voice Transaction Entry
-* Google OAuth Login
-* Email Notifications
-* Mobile Application
-* Cloud Database Integration
-* Budget Goal Tracking
-* Automated Recurring Transactions
+- AI-Based Spending Prediction
+- Budget Recommendation System
+- OCR Receipt Scanning
+- Voice Transaction Entry
+- Google OAuth Login
+- Email Notifications
+- Mobile Application
+- Cloud Database Integration
+- Budget Goal Tracking
+- Automated Recurring Transactions
 
 ---
 
@@ -486,24 +688,3 @@ Special thanks to the open-source communities behind Flask, SQLAlchemy, Bootstra
 
 ### 💰 BudgetHub – Track Smart. Spend Smarter.
 
-Below are a few screen shots attached 
-<img width="1888" height="847" alt="Screenshot 2026-06-30 092025" src="https://github.com/user-attachments/assets/7496432b-7ae7-4d6b-940a-2a96cdb092ff" />
-<img width="1897" height="857" alt="Screenshot 2026-06-30 092045" src="https://github.com/user-attachments/assets/c53a6ef5-61a7-4f5b-bf3d-297bbe002a1e" />
-
-
-<img width="1911" height="855" alt="image" src="https://github.com/user-attachments/assets/b4d38486-5b57-4dac-9afc-0c4c86a607c8" />
-
-<img width="1896" height="863" alt="Screenshot 2026-06-27 223032" src="https://github.com/user-attachments/assets/ef021f06-88e4-48f3-9adf-5b6713ff262b" />
-
-<img width="1908" height="868" alt="image" src="https://github.com/user-attachments/assets/da6e0603-60c4-4767-8413-fd50b10df953" />
-
-<img width="1886" height="863" alt="image" src="https://github.com/user-attachments/assets/d80b9486-0ab9-429e-98a6-e942bf4bf622" />
-
-<img width="1067" height="785" alt="image" src="https://github.com/user-attachments/assets/d9fcf3a4-d41a-4a60-971e-3df1937b2c83" />
-<img width="922" height="772" alt="image" src="https://github.com/user-attachments/assets/689cb6db-7352-4f59-81c8-e0bd4bd04083" />
-<img width="930" height="768" alt="image" src="https://github.com/user-attachments/assets/b03d6d96-b4c5-4c03-90d9-aa6a2970718b" />
-
-<br><br>
-
-Below is the link for the screen recording of my project 
-https://www.loom.com/share/9aa3f4a11843444aa7ca475c531bd951

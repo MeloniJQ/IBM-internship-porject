@@ -1,0 +1,51 @@
+# --- Version control ---
+.git
+.gitignore
+.github
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.venv/
+*.egg-info/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# --- Environment / secrets ---
+.env
+.env.*
+!.env.example
+
+# --- Database (dev data must not be baked into the image) ---
+instance/
+*.db
+*.sqlite
+*.sqlite3
+
+# --- Docker itself ---
+Dockerfile
+docker-compose.yml
+docker-compose.yaml
+.dockerignore
+
+# --- Editor / OS cruft ---
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# --- Node (in case any tooling is added later) ---
+node_modules/
+
+# --- Local test/dev-only helper scripts (not required at runtime) ---
+verify_dashboard.py
+verify_gemini.py
