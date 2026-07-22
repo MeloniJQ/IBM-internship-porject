@@ -22,7 +22,19 @@ def ask_gemini(prompt: str, model: Optional[str] = None, max_tokens: int = 512) 
 
     payload = _build_payload(api_url, prompt, model, max_tokens)
 
-    resp = requests.post(api_url, json=payload, headers=headers, timeout=30)
+    try:
+        resp = requests.post(api_url, json=payload, headers=headers, timeout=30)
+    except requests.exceptions.Timeout:
+        raise GeminiError('The request to the AI provider timed out. Please try again.')
+    except requests.exceptions.ConnectionError as e:
+        raise GeminiError(f'Could not reach the AI provider ({api_url}): {e}')
+
+    if resp.status_code == 401:
+        raise GeminiError('The AI provider rejected the API key (401 Unauthorized). '
+                           'Check that GEMINI_API_KEY / OPENROUTER_API_KEY in your .env is correct and not expired.')
+    if resp.status_code == 429:
+        raise GeminiError('Rate limit hit on the AI provider (429 Too Many Requests). '
+                           'Free-tier models like OpenRouter\'s ":free" models have a daily request cap — wait and try again later.')
 
     try:
         resp.raise_for_status()

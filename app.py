@@ -1,3 +1,10 @@
+from dotenv import load_dotenv
+# Load variables from .env into the process environment BEFORE anything
+# below calls os.environ.get(...). Without this line, python-dotenv being
+# installed does nothing — .env is never actually read when you run
+# `python app.py` directly (only docker-compose's env_file: reads it for you).
+load_dotenv()
+
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from models import db, User, Transaction, Category
@@ -606,6 +613,131 @@ def api_user():
             return jsonify({'error': str(e)}), 500
 
 
+import re
+
+MONTH_NAMES = [
+    "january", "february", "march", "april", "may", "june",
+    "july", "august", "september", "october", "november", "december"
+]
+
+
+def _detect_requested_month(question, default_year=None):
+    """Look for an explicit month mention in the user's question
+    (e.g. 'July 2026', 'last month', 'this month') and return (month, year)
+    if found, else (None, None).
+    """
+    q = question.lower()
+    today = datetime.now()
+
+    if 'this month' in q:
+        return today.month, today.year
+
+    if 'last month' in q:
+        first_of_this_month = today.replace(day=1)
+        last_month_date = first_of_this_month - timedelta(days=1)
+        return last_month_date.month, last_month_date.year
+
+    year_match = re.search(r'\b(20\d{2})\b', q)
+    year = int(year_match.group(1)) if year_match else default_year
+
+    for idx, name in enumerate(MONTH_NAMES, start=1):
+        if name in q:
+            return idx, (year or today.year)
+
+    return None, None
+
+
+def build_financial_context(user, question="", max_transactions=200):
+    """Summarize the current user's real transactions into a compact text
+    block that can be prepended to their prompt, so the assistant is
+    actually answering from their data instead of guessing.
+
+    Includes:
+      - all-time totals
+      - a month-by-month breakdown (so "net profit in July 2026" style
+        questions can be checked against real numbers, not guessed)
+      - an exact, pre-computed answer for the specific month mentioned in
+        the question, if any (so the LLM doesn't have to do the date math)
+      - the most recent transactions in detail
+    """
+    txns = (
+        Transaction.query
+        .filter(Transaction.user_id == user.id)
+        .order_by(Transaction.date.desc())
+        .all()
+    )
+
+    if not txns:
+        return "The user has no recorded transactions at all."
+
+    total_in = sum(t.amount for t in txns if t.type == 'credited')
+    total_out = sum(t.amount for t in txns if t.type == 'debited')
+
+    # Month-by-month breakdown, oldest to newest
+    by_month = {}
+    for t in txns:
+        key = t.date.strftime('%Y-%m')
+        bucket = by_month.setdefault(key, {'in': 0.0, 'out': 0.0})
+        if t.type == 'credited':
+            bucket['in'] += t.amount
+        else:
+            bucket['out'] += t.amount
+
+    monthly_lines = "\n".join(
+        f"  - {month}: income={vals['in']:.2f}, expenses={vals['out']:.2f}, "
+        f"net_profit={vals['in'] - vals['out']:.2f}"
+        for month, vals in sorted(by_month.items())
+    )
+
+    by_category = {}
+    for t in txns:
+        if t.type == 'debited':
+            by_category[t.category] = by_category.get(t.category, 0) + t.amount
+
+    top_categories = sorted(by_category.items(), key=lambda kv: kv[1], reverse=True)[:8]
+    category_lines = "\n".join(f"  - {cat}: {amt:.2f}" for cat, amt in top_categories)
+
+    recent = txns[:max_transactions]
+    recent_lines = "\n".join(
+        f"  - {t.date.strftime('%Y-%m-%d')} | {t.type} | {t.category} | {t.amount:.2f} | {t.description or ''}"
+        for t in recent
+    )
+
+    # If the question names a specific month, pre-compute the exact
+    # answer for it directly in Python so the assistant just has to
+    # report a real number instead of estimating one.
+    month_num, year = _detect_requested_month(question)
+    requested_month_block = ""
+    if month_num:
+        key = f"{year:04d}-{month_num:02d}"
+        vals = by_month.get(key)
+        month_label = datetime(year, month_num, 1).strftime('%B %Y')
+        if vals:
+            requested_month_block = (
+                f"\nEXACT ANSWER FOR {month_label}: "
+                f"income={vals['in']:.2f}, expenses={vals['out']:.2f}, "
+                f"net_profit={vals['in'] - vals['out']:.2f}. "
+                f"Use these exact numbers if the question asks about {month_label}.\n"
+            )
+        else:
+            requested_month_block = (
+                f"\nNOTE: The user's question appears to ask about {month_label}, "
+                f"but there are no transactions recorded for that month.\n"
+            )
+
+    return (
+        f"Financial summary for {user.full_name or user.username} "
+        f"(business type: {user.business_type}), all-time:\n"
+        f"Total income: {total_in:.2f}\n"
+        f"Total expenses: {total_out:.2f}\n"
+        f"Net: {total_in - total_out:.2f}\n"
+        f"{requested_month_block}"
+        f"Month-by-month breakdown:\n{monthly_lines}\n"
+        f"Top spending categories (all-time):\n{category_lines}\n"
+        f"Transactions (most recent {len(recent)} of {len(txns)}):\n{recent_lines}"
+    )
+
+
 # ==================== API - GEMINI / LLM INTEGRATION ====================
 
 def _build_financial_context(user):
@@ -645,6 +777,10 @@ def api_gemini():
 
     Expects JSON: { "prompt": "..." }
     Returns: { "response": "..." }
+
+    The user's own prompt is combined with a summary of their real
+    transaction data, so the assistant can actually answer budget
+    questions ("how much did I spend on X") instead of just guessing.
     """
     data = request.get_json() or {}
     prompt = data.get('prompt')
@@ -665,6 +801,10 @@ def api_gemini():
     try:
         result = llm.ask_gemini(full_prompt, model=model, max_tokens=max_tokens)
         return jsonify({'response': result})
+    except llm.GeminiError as e:
+        # Config/auth/rate-limit errors from the LLM provider — surfaced as a
+        # clear message instead of a generic 500 with a raw exception string.
+        return jsonify({'error': str(e)}), 502
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

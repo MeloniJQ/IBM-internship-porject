@@ -270,13 +270,11 @@ document.addEventListener("DOMContentLoaded", function () {
   geminiSubmit.addEventListener("click", async () => {
     console.log("geminiSubmit clicked");
     const promptEl = document.getElementById("geminiPrompt");
-    const modelEl = document.getElementById("geminiModel");
     const respEl = document.getElementById("geminiResponse");
 
     if (!promptEl || !respEl) return;
 
     const prompt = promptEl.value.trim();
-    const model = modelEl ? modelEl.value.trim() || undefined : undefined;
 
     if (!prompt) {
       respEl.style.display = "block";
@@ -292,7 +290,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     try {
       const payload = { prompt };
-      if (model) payload.model = model;
 
       const r = await fetch("/api/gemini", {
         method: "POST",
