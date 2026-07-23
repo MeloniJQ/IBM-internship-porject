@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 from dotenv import load_dotenv
 # Load variables from .env into the process environment BEFORE anything
 # below calls os.environ.get(...). Without this line, python-dotenv being
@@ -7,7 +5,6 @@ from dotenv import load_dotenv
 # `python app.py` directly (only docker-compose's env_file: reads it for you).
 load_dotenv()
 
->>>>>>> feature/gemini-integration
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from models import db, User, Transaction, Category
@@ -16,29 +13,18 @@ from sqlalchemy import func
 import csv
 import io
 import os
-<<<<<<< HEAD
-from werkzeug.security import generate_password_hash
-
-=======
-from dotenv import load_dotenv
+import re
 import llm
 from werkzeug.security import generate_password_hash
 
-load_dotenv()
-
->>>>>>> feature/gemini-integration
 # ==================== APPLICATION SETUP ====================
 
 app = Flask(__name__)
 
 # Configuration
-<<<<<<< HEAD
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///budget_tracker.db'
-=======
 # DATABASE_URL can be overridden via environment variable (e.g. in Docker/production).
 # Defaults to the original relative SQLite path used in local development.
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///budget_tracker.db')
->>>>>>> feature/gemini-integration
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 import random
 import string
@@ -625,9 +611,7 @@ def api_user():
             return jsonify({'error': str(e)}), 500
 
 
-<<<<<<< HEAD
-=======
-import re
+# ==================== API - GEMINI / LLM INTEGRATION ====================
 
 MONTH_NAMES = [
     "january", "february", "march", "april", "may", "june",
@@ -752,38 +736,6 @@ def build_financial_context(user, question="", max_transactions=200):
     )
 
 
-# ==================== API - GEMINI / LLM INTEGRATION ====================
-
-def _build_financial_context(user):
-    """Summarize the user's transactions by month so the assistant can answer
-    questions about actual income/expense/profit instead of guessing."""
-    rows = db.session.query(
-        func.strftime('%Y-%m', Transaction.date).label('month'),
-        Transaction.type,
-        func.sum(Transaction.amount)
-    ).filter(
-        Transaction.user_id == user.id
-    ).group_by('month', Transaction.type).order_by('month').all()
-
-    monthly = {}
-    for month, ttype, total in rows:
-        monthly.setdefault(month, {'credited': 0.0, 'debited': 0.0})
-        monthly[month][ttype] = float(total)
-
-    if not monthly:
-        return "The user has no recorded transactions yet."
-
-    lines = ["Monthly financial summary (currency: INR):"]
-    for month in sorted(monthly.keys()):
-        income = monthly[month]['credited']
-        expense = monthly[month]['debited']
-        profit = income - expense
-        lines.append(
-            f"- {month}: income {income:.2f}, expense {expense:.2f}, profit {profit:.2f}"
-        )
-    return "\n".join(lines)
-
-
 @app.route('/api/gemini', methods=['POST'])
 @login_required
 def api_gemini():
@@ -804,15 +756,18 @@ def api_gemini():
     model = data.get('model')
     max_tokens = data.get('max_tokens', 512)
 
-    context = _build_financial_context(current_user)
-    full_prompt = (
-        "You are a budgeting assistant. Answer the user's question using ONLY "
-        "the financial data below. If the data doesn't cover the period or "
-        "detail asked about, say so explicitly instead of guessing.\n\n"
-        f"{context}\n\nQuestion: {prompt}"
-    )
-
     try:
+        context = build_financial_context(current_user, question=prompt)
+        full_prompt = (
+            "You are a budgeting assistant. Use the financial data below to "
+            "answer the user's question accurately. If an 'EXACT ANSWER' line "
+            "is present for the month being asked about, use those numbers "
+            "directly instead of recalculating. If the data doesn't contain "
+            "enough information to answer, say so clearly instead of "
+            "guessing.\n\n"
+            f"{context}\n\n"
+            f"User question: {prompt}"
+        )
         result = llm.ask_gemini(full_prompt, model=model, max_tokens=max_tokens)
         return jsonify({'response': result})
     except llm.GeminiError as e:
@@ -857,7 +812,6 @@ def api_gemini_key():
         return jsonify({'error': str(e)}), 500
 
 
->>>>>>> feature/gemini-integration
 # ==================== ERROR HANDLERS ====================
 
 @app.errorhandler(404)
@@ -876,10 +830,6 @@ def forbidden(error):
 
 
 if __name__ == '__main__':
-<<<<<<< HEAD
-    app.run(debug=True, host='0.0.0.0', port=5000)
-=======
     debug_mode = os.environ.get('FLASK_DEBUG', 'true').lower() in ('1', 'true', 'yes')
     port = int(os.environ.get('PORT', 5000))
     app.run(debug=debug_mode, host='0.0.0.0', port=port)
->>>>>>> feature/gemini-integration
