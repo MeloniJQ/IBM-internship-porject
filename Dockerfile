@@ -89,7 +89,7 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
 
 # Run with Gunicorn (production WSGI server) instead of Flask's dev server.
 # Shell form is used so environment variables are expanded at container start.
-CMD gunicorn --bind 0.0.0.0:${PORT} \
+CMD gunicorn --preload --bind 0.0.0.0:${PORT} \
     --workers ${GUNICORN_WORKERS} \
     --timeout ${GUNICORN_TIMEOUT} \
     --access-logfile - \
